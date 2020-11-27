@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Quizleç.Database;
 
 namespace Quizleç
 {
@@ -25,7 +27,8 @@ namespace Quizleç
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.Configure<Aerospike>(Configuration.GetSection("Aerospike"));
+            //services.Configure<Logging>(Configuration.GetSection("Logging"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,7 +45,14 @@ namespace Quizleç
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGet("/", async context =>
+                {
+                    AerospikeClient client = new AerospikeClient(Configuration.GetSection("Aerospike"));
+                    await context.Response.WriteAsync(client.GetCard(0).FrontSide);
+                });
+            });
         }
     }
 }

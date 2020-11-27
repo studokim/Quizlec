@@ -5,9 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Database" />
       <Folder Include="GraphQL" />
-      <Folder Include="Models" />
     </ItemGroup>
 
     <ItemGroup>
