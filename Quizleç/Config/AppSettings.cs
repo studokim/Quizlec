@@ -28,8 +28,39 @@ namespace Quizleç.Config
 
     public class Set
     {
-        public string User { get; set; }
-        public string Collection { get; set; }
-        public string Card { get; set; }
+        public User User { get; set; }
+        public Collection Collection { get; set; }
+        public Card Card { get; set; }
+    }
+
+    public class User
+    {
+        public string SetName { get; set; }
+        public string Id { get; set; }
+        public string Login { get; set; }
+        public string PasswordHash { get; set; }
+        public string Email { get; set; }
+        public string Collections { get; set; }
+        public string IsActive { get; set; }
+    }
+
+    public class Collection
+    {
+        public string SetName { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Owner { get; set; }
+        public string Cards { get; set; }
+        public string IsActive { get; set; }
+    }
+
+    public class Card
+    {
+        public string SetName { get; set; }
+        public string Id { get; set; }
+        public string FrontSide { get; set; }
+        public string BackSide { get; set; }
+        public string IsActive { get; set; }
     }
 }

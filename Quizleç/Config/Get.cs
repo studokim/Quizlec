@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -17,6 +18,12 @@ namespace Quizleç.Config
         public static Aerospike AerospikeOptions(string environment = null)
         {
             return AppSettingsOptions(environment).Aerospike;
+        }
+
+        public static int Index()
+        {
+            // TODO: rewrite indexing, it's enough only for 1.5 months.
+            return (int)(DateTimeOffset.Now.ToUnixTimeMilliseconds() - 1608700000000);
         }
     }
 }
