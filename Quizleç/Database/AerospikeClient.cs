@@ -1,12 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Aerospike.Client;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using System.Text.Json;
 using Quizleç.Models;
 using User = Quizleç.Models.User;
 
@@ -17,11 +11,10 @@ namespace Quizleç.Database
         private readonly Config.Aerospike Options;
         private readonly Policy Policy;
         private AsyncClient Client;
-        private Key Key;
 
         public AerospikeClient()
         {
-            Options = Config.Get.GetAerospike("Development");
+            Options = Config.Get.AerospikeOptions("Development");
             Policy = new WritePolicy();
             Open();
         }
@@ -38,22 +31,23 @@ namespace Quizleç.Database
 
         public Record GetRecord(Entities entity, int id)
         {
+            Key key;
             switch (entity)
             {
                 case Entities.Card:
-                    Key = new Key(Options.Namespace, Options.Set.Card, id);
+                    key = new Key(Options.Namespace, Options.Set.Card, id);
                     break;
                 case Entities.Collection:
-                    Key = new Key(Options.Namespace, Options.Set.Collection, id);
+                    key = new Key(Options.Namespace, Options.Set.Collection, id);
                     break;
                 case Entities.User:
-                    Key = new Key(Options.Namespace, Options.Set.User, id);
+                    key = new Key(Options.Namespace, Options.Set.User, id);
                     break;
                 default:
                     throw new ArgumentException("Not implemented for this Entity.");
             }
 
-            return Client.Get(Policy, Key);
+            return Client.Get(Policy, key);
         }
 
         public User GetUser(int id)

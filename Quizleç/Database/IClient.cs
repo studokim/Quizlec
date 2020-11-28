@@ -5,5 +5,7 @@ namespace Quizleç.Database
 {
     internal interface IClient
     {
+        public void Open();
+        public void Close();
     }
 }
