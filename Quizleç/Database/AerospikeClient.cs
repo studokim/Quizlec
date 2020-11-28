@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Aerospike.Client;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 using Quizleç.Models;
 using User = Quizleç.Models.User;
 
@@ -11,14 +14,14 @@ namespace Quizleç.Database
 {
     public class AerospikeClient : IClient
     {
-        private readonly Aerospike Options;
+        private readonly Config.Aerospike Options;
         private readonly Policy Policy;
         private AsyncClient Client;
         private Key Key;
 
-        public AerospikeClient(IOptions<Aerospike> optionsAccessor)
+        public AerospikeClient()
         {
-            Options = optionsAccessor.Value;
+            Options = Config.Get.GetAerospike("Development");
             Policy = new WritePolicy();
             Open();
         }

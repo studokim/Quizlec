@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Logging;
-
-namespace Quizleç
+namespace Quizleç.Config
 {
     public class AppSettings
     {
