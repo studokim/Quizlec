@@ -30,43 +30,43 @@ namespace Quizleç.Database
 
         public void PutUser(User user)
         {
-            Key key = new Key(Options.Namespace, Options.Set.User.SetName, Config.Get.Index());
+            Key key = MakeKey(Entities.User, user.Id);
             Bin[] bins = new[]
             {
-                new Bin(Options.Set.User.Id, user.Id),
-                new Bin(Options.Set.User.Login, user.Login),
-                new Bin(Options.Set.User.PasswordHash, user.PasswordHash),
-                new Bin(Options.Set.User.Email, user.Email),
-                new Bin(Options.Set.User.Collections, user.Collections),
-                new Bin(Options.Set.User.IsActive, true),
+                new Bin("Id", user.Id),
+                new Bin("Login", user.Login),
+                new Bin("PasswordHash", user.PasswordHash),
+                new Bin("Email", user.Email),
+                new Bin("Collections", user.Collections),
+                new Bin("IsActive", true),
             };
             Client.Put((WritePolicy)Policy, key, bins);
         }
 
         public void PutCollection(Collection collection)
         {
-            Key key = new Key(Options.Namespace, Options.Set.Collection.SetName, Config.Get.Index());
+            Key key = MakeKey(Entities.Collection, collection.Id);
             Bin[] bins = new[]
             {
-                new Bin(Options.Set.Collection.Id, collection.Id),
-                new Bin(Options.Set.Collection.Name, collection.Name),
-                new Bin(Options.Set.Collection.Description, collection.Description),
-                new Bin(Options.Set.Collection.Owner, collection.Owner),
-                new Bin(Options.Set.Collection.Cards, collection.Cards),
-                new Bin(Options.Set.Collection.IsActive, true),
+                new Bin("Id", collection.Id),
+                new Bin("Name", collection.Name),
+                new Bin("Description", collection.Description),
+                new Bin("Owner", collection.Owner),
+                new Bin("Cards", collection.Cards),
+                new Bin("IsActive", true),
             };
             Client.Put((WritePolicy)Policy, key, bins);
         }
 
         public void PutCard(Card card)
         {
-            Key key = new Key(Options.Namespace, Options.Set.Card.SetName, Config.Get.Index());
+            Key key = MakeKey(Entities.Card, card.Id);
             Bin[] bins = new[]
             {
-                new Bin(Options.Set.Card.Id, card.Id),
-                new Bin(Options.Set.Card.FrontSide, card.FrontSide),
-                new Bin(Options.Set.Card.BackSide, card.BackSide),
-                new Bin(Options.Set.Card.IsActive, true),
+                new Bin("Id", card.Id),
+                new Bin("FrontSide", card.FrontSide),
+                new Bin("BackSide", card.BackSide),
+                new Bin("IsActive", true),
             };
             Client.Put((WritePolicy)Policy, key, bins);
         }

@@ -1,4 +1,6 @@
+using System;
 using Aerospike.Client;
+using Quizleç.Models;
 
 namespace Quizleç.Database
 {
@@ -32,6 +34,28 @@ namespace Quizleç.Database
         public void Close()
         {
             Client.Close();
+        }
+
+        protected Key MakeKey(Entities entity, int id)
+        {
+            Key key;
+            switch (entity)
+            {
+                case Entities.Card:
+                    key = new Key(Options.Namespace, Options.Set.Card, id);
+                    break;
+                case Entities.Collection:
+                    key = new Key(Options.Namespace, Options.Set.Collection, id);
+                    break;
+                case Entities.User:
+                    key = new Key(Options.Namespace, Options.Set.User, id);
+                    break;
+                default:
+                    throw new ArgumentException
+                        ($"Not implemented for this Entity {entity}.");
+            }
+
+            return key;
         }
     }
 }
