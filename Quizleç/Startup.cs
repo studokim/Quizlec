@@ -26,6 +26,22 @@ namespace Quizleç
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            /*services.AddCors(options =>
+            {
+                options.AddPolicy("Anton",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:3000", "https://localhost:3000",
+                            "http://10.19.0.7:3000", "https://10.19.0.7:3000");
+                        builder.AllowCredentials();
+                        //builder.AllowAnyOrigin();
+                        builder.AllowAnyHeader();
+                        builder.AllowAnyMethod();
+                    });
+            });*/
+            services.AddGraphQLServer()
+                .AddQueryType<GraphQL.Query>()
+                .AddMutationType<GraphQL.Mutation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -38,11 +54,16 @@ namespace Quizleç
 
             //app.UseHttpsRedirection();
 
-            //app.UseRouting();
+            app.UseRouting();
 
-            //app.UseAuthorization();
+            //app.UseCors();
 
-            //app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGraphQL("/api");
+            });
         }
     }
 }

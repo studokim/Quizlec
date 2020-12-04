@@ -6,6 +6,8 @@ namespace Quizleç.Config
 {
     public static class Get
     {
+        public static int CurrentIndex =
+            (int)(DateTimeOffset.Now.ToUnixTimeMilliseconds() - 1608700000000);
         public static AppSettings AppSettingsOptions(string environment = null)
         {
             // TODO: is it fine instead of Options pattern?
@@ -23,7 +25,7 @@ namespace Quizleç.Config
         public static int Index()
         {
             // TODO: rewrite indexing, it's enough only for 1.5 months.
-            return (int)(DateTimeOffset.Now.ToUnixTimeMilliseconds() - 1608700000000);
+            return ++CurrentIndex;
         }
     }
 }
