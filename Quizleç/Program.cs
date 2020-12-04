@@ -13,29 +13,38 @@ namespace Quizleç
 {
     public class Program
     {
+        private static void Print()
+        {
+            var c = new AerospikeQueryClient();
+            foreach (var card in c.GetCardsByUserId(0))
+            {
+                Console.WriteLine(card.FrontSide);
+            }
+        }
+
         private static void HardcodePut()
         {
             AerospikeWriteClient w = new AerospikeWriteClient();
-            w.PutCard(new Card() { Id = 1, FrontSide = "Cog", BackSide = "Зубец" });
-            w.PutCard(new Card() { Id = 2, FrontSide = "Cab", BackSide = "Такси" });
-            w.PutCard(new Card() { Id = 3, FrontSide = "Can", BackSide = "Банка" });
-            w.PutCard(new Card() { Id = 4, FrontSide = "Cop", BackSide = "Полицейский" });
-            w.PutCollection(new Collection()
+            w.Put(new Card() { Id = 1, FrontSide = "Cog", BackSide = "Зубец" });
+            w.Put(new Card() { Id = 2, FrontSide = "Cab", BackSide = "Такси" });
+            w.Put(new Card() { Id = 3, FrontSide = "Can", BackSide = "Банка" });
+            w.Put(new Card() { Id = 4, FrontSide = "Cop", BackSide = "Полицейский" });
+            w.Put(new Collection()
             {
                 Id = 0, Name = "Default", Description = "Basic collection",
                 Owner = 1, Cards = new List<int>() {2, 4}
             });
-            w.PutCollection(new Collection()
+            w.Put(new Collection()
             {
                 Id = 1, Name = "New", Description = "Second collection",
                 Owner = 1, Cards = new List<int>() {1, 3}
             });
-            w.PutUser(new User()
+            w.Put(new User()
             {
                 Id = 0, Login = "Johnny", Email = "a@b.c", PasswordHash = "fwejnf",
                 Collections = new List<int>() {0, 1}
             });
-            w.PutUser(new User()
+            w.Put(new User()
             {
                 Id = 1, Login = "Smithy", Email = "b@c.d", PasswordHash = "fddgf",
                 Collections = new List<int>() { }
@@ -80,13 +89,17 @@ namespace Quizleç
             Console.WriteLine(c.Delete(Entities.Card, 4));
             Console.WriteLine(c.Delete(Entities.Collection, 4444));
         }
+
+        private static void HardCodeUpdate()
+        {
+            AerospikeWriteClient w = new AerospikeWriteClient();
+            Card r = new Card() {BackSide = "Американский полицейский"};
+            w.Update(r, 4);
+            User u = new User() { Email = "e@f.g"};
+            w.Update(u, 1);
+        }
         public static void Main(string[] args)
         {
-            var c = new AerospikeQueryClient();
-            foreach (var card in c.GetCardsByUserId(0))
-            {
-                Console.WriteLine(card.FrontSide);
-            }
             CreateHostBuilder(args).Build().Run();
         }
 

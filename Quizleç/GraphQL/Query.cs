@@ -23,7 +23,7 @@ namespace Quizleç.GraphQL
         public User PutUser(User user)
         {
             var c = new AerospikeWriteClient();
-            c.PutUser(user);
+            c.Put(user);
             c.Close();
             return user;
         }
