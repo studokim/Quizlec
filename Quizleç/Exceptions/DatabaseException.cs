@@ -2,14 +2,25 @@ using System;
 
 namespace Quizleç.Exceptions
 {
-    public class DatabaseException : Exception
+    public class DatabaseQueryException : Exception
     {
-        public DatabaseException() { }
+        public DatabaseQueryException() { }
 
-        public DatabaseException(string message)
+        public DatabaseQueryException(string message)
             : base(message) { }
 
-        public DatabaseException(string message, Exception inner)
+        public DatabaseQueryException(string message, Exception inner)
+            : base(message, inner) { }
+    }
+
+    public class DatabaseWriteException : Exception
+    {
+        public DatabaseWriteException() { }
+
+        public DatabaseWriteException(string message)
+            : base(message) { }
+
+        public DatabaseWriteException(string message, Exception inner)
             : base(message, inner) { }
     }
 }

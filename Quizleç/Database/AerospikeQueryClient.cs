@@ -107,6 +107,7 @@ namespace Quizleç.Database
                             Email = r.GetString("Email"),
                         });
                 }
+                rs.Dispose();
 
                 if (res.Count == 1)
                     return res[0];
@@ -114,19 +115,19 @@ namespace Quizleç.Database
                     throw new UserNotFoundException
                         ($"The user with login={login} doesn't exist.");
                 if (res.Count > 1)
-                    throw new DatabaseException
+                    throw new DatabaseQueryException
                         ($"Too many users with login={login}: {res.Count}.");
                 else
-                    throw new DatabaseException();
+                    throw new DatabaseQueryException();
             }
             catch (AerospikeException e)
             {
-                throw new DatabaseException
+                throw new DatabaseQueryException
                     ("Please create User:Login index first.", e);
             }
             catch (Exception e)
             {
-                throw new DatabaseException("Can't get user by login", e);
+                throw new DatabaseQueryException("Can't get user by login", e);
             }
         }
 
@@ -153,23 +154,24 @@ namespace Quizleç.Database
                             Owner = r.GetInt("Owner"),
                         });
                 }
+                rs.Dispose();
 
                 if (res.Count <= 0)
                     throw new UserNotFoundException
                         ($"The collection with name={name} doesn't exist.");
                 if (res.Count > 1)
-                    throw new DatabaseException
+                    throw new DatabaseQueryException
                         ($"Too many collections with name={name}: {res.Count}.");
                 return res[0];
             }
             catch (AerospikeException e)
             {
-                throw new DatabaseException
+                throw new DatabaseQueryException
                     ("Please create Collection:Name index first.", e);
             }
             catch (Exception e)
             {
-                throw new DatabaseException("Can't get collection by name", e);
+                throw new DatabaseQueryException("Can't get collection by name", e);
             }
         }
 
@@ -201,7 +203,7 @@ namespace Quizleç.Database
             }
             catch (Exception e)
             {
-                throw new DatabaseException
+                throw new DatabaseQueryException
                     ($"Can't get cards of the collection with id={id}.", e);
             }
         }
@@ -234,7 +236,7 @@ namespace Quizleç.Database
             }
             catch (Exception e)
             {
-                throw new DatabaseException
+                throw new DatabaseQueryException
                     ($"Can't get collections of the user with id={id}.", e);
             }
         }
@@ -271,7 +273,7 @@ namespace Quizleç.Database
             }
             catch (Exception e)
             {
-                throw new DatabaseException
+                throw new DatabaseQueryException
                     ($"Can't get cards of the user with id={id}.", e);
             }
         }

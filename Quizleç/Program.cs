@@ -13,7 +13,7 @@ namespace Quizleç
 {
     public class Program
     {
-        private static void Hardcode()
+        private static void HardcodePut()
         {
             AerospikeWriteClient w = new AerospikeWriteClient();
             w.PutCard(new Card() { Id = 1, FrontSide = "Cog", BackSide = "Зубец" });
@@ -43,9 +43,9 @@ namespace Quizleç
             //AerospikeManagingClient m = new AerospikeManagingClient();
             //m.MakeIndexes();
         }
-        public static void Main(string[] args)
+
+        private static void HardcodeGet()
         {
-            //Hardcode();
             AerospikeQueryClient c = new AerospikeQueryClient();
             try
             {
@@ -72,6 +72,16 @@ namespace Quizleç
             {
                 Console.WriteLine(e.Message);
             }
+        }
+
+        private static void HardCodeDelete()
+        {
+            AerospikeWriteClient c = new AerospikeWriteClient();
+            c.Delete(Entities.Card, 4);
+            c.Delete(Entities.Collection, 4444);
+        }
+        public static void Main(string[] args)
+        {
             CreateHostBuilder(args).Build().Run();
         }
 
