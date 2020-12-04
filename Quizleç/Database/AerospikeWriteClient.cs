@@ -77,14 +77,15 @@ namespace Quizleç.Database
             }
         }
 
-        public void Delete(Entities entity, int id)
+        public int Delete(Entities entity, int id)
         {
             try
             {
                 Record r = Client.Get(Policy, MakeKey(entity, id));
                 if (r.GetBool("IsActive"))
-                    Client.Operate((WritePolicy) Policy, MakeKey(entity, id),
+                    r = Client.Operate((WritePolicy) Policy, MakeKey(entity, id),
                         Operation.Put(new Bin("IsActive", false)));
+                return r.GetInt("Id");
             }
             catch (NullReferenceException e)
             {
@@ -97,5 +98,7 @@ namespace Quizleç.Database
                     ($"Error while deleting {entity} with id={id}", e);
             }
         }
+
+        //public void
     }
 }

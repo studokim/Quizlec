@@ -77,11 +77,16 @@ namespace Quizleç
         private static void HardCodeDelete()
         {
             AerospikeWriteClient c = new AerospikeWriteClient();
-            c.Delete(Entities.Card, 4);
-            c.Delete(Entities.Collection, 4444);
+            Console.WriteLine(c.Delete(Entities.Card, 4));
+            Console.WriteLine(c.Delete(Entities.Collection, 4444));
         }
         public static void Main(string[] args)
         {
+            var c = new AerospikeQueryClient();
+            foreach (var card in c.GetCardsByUserId(0))
+            {
+                Console.WriteLine(card.FrontSide);
+            }
             CreateHostBuilder(args).Build().Run();
         }
 

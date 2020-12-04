@@ -67,7 +67,7 @@ namespace Quizleç.Database
             try
             {
                 var r = Client.Get(Policy, MakeKey(Entities.Card, id),
-                    "Id", "FrontSide", "BackSide");
+                    "Id", "FrontSide", "BackSide", "IsActive");
                 if (r.GetBool("IsActive"))
                     return new Card()
                     {
@@ -181,9 +181,9 @@ namespace Quizleç.Database
             {
                 Key key = MakeKey(Entities.Collection, id);
                 Record r = Client.Get(Policy, key, "Cards", "IsActive");
-                IList cardIds = r.GetList("Cards");
                 if (r.GetBool("IsActive"))
                 {
+                    IList cardIds = r.GetList("Cards");
                     if (cardIds.Count <= 0)
                         throw new CardNotFoundException
                             ($"There's no cards in collection with id={id} yet.");
@@ -192,7 +192,11 @@ namespace Quizleç.Database
                     {
                         //  Returned IList consists of long, therefore we need to cast
                         // TODO: fix when Ids are not int
-                        res.Add(GetCard((int)((long)i % int.MaxValue)));
+                        try
+                        {
+                            res.Add(GetCard((int)((long)i % int.MaxValue)));
+                        }
+                        catch (CardNotFoundException) { }
                     }
 
                     return res;
