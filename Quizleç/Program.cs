@@ -32,12 +32,12 @@ namespace Quizleç
             w.Put(new Collection()
             {
                 Id = 0, Name = "Default", Description = "Basic collection",
-                Owner = 1, Cards = new List<int>() {2, 4}
+                Cards = new List<int>() {2, 4}
             });
             w.Put(new Collection()
             {
                 Id = 1, Name = "New", Description = "Second collection",
-                Owner = 1, Cards = new List<int>() {1, 3}
+                Cards = new List<int>() {1, 3}
             });
             w.Put(new User()
             {
@@ -47,10 +47,8 @@ namespace Quizleç
             w.Put(new User()
             {
                 Id = 1, Login = "Smithy", Email = "b@c.d", PasswordHash = "fddgf",
-                Collections = new List<int>() { }
+                Collections = new List<int>() {0}
             });
-            //AerospikeManagingClient m = new AerospikeManagingClient();
-            //m.MakeIndexes();
         }
 
         private static void HardcodeGet()
@@ -100,6 +98,7 @@ namespace Quizleç
         }
         public static void Main(string[] args)
         {
+            //HardcodePut();
             CreateHostBuilder(args).Build().Run();
         }
 
