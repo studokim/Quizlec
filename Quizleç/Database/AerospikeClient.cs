@@ -57,5 +57,11 @@ namespace Quizleç.Database
 
             return key;
         }
+
+        protected bool Exists(Key key)
+        {
+            return Client.Exists(Policy, key) &&
+                   Client.Get(Policy, key, "IsActive").GetBool("IsActive");
+        }
     }
 }

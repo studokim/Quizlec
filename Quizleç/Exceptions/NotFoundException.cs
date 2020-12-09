@@ -2,7 +2,18 @@ using System;
 
 namespace Quizleç.Exceptions
 {
-    public class UserNotFoundException : Exception
+    public class NotFoundException : Exception
+    {
+        public NotFoundException() { }
+
+        public NotFoundException(string message)
+            : base(message) { }
+
+        public NotFoundException(string message, Exception inner)
+            : base(message, inner) { }
+    }
+
+    public class UserNotFoundException : NotFoundException
     {
         public UserNotFoundException() { }
 
@@ -13,7 +24,7 @@ namespace Quizleç.Exceptions
             : base(message, inner) { }
     }
 
-    public class CollectionNotFoundException : Exception
+    public class CollectionNotFoundException : NotFoundException
     {
         public CollectionNotFoundException() { }
 
@@ -24,7 +35,7 @@ namespace Quizleç.Exceptions
             : base(message, inner) { }
     }
 
-    public class CardNotFoundException : Exception
+    public class CardNotFoundException : NotFoundException
     {
         public CardNotFoundException() { }
 

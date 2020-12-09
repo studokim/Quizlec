@@ -10,79 +10,60 @@ namespace Quizleç.Database
 {
     public class AerospikeQueryClient : AerospikeClient
     {
-        public AerospikeQueryClient() : base(false) { }
+        public AerospikeQueryClient() : base(false)
+        {
+        }
 
         public User GetUserInfo(int id)
         {
-            try
+            Key key = MakeKey(Entities.User, id);
+            if (Exists(key))
             {
-                var r = Client.Get(Policy, MakeKey(Entities.User, id),
-                    "Id", "Login", "PasswordHash", "Email", "IsActive");
-                if (r.GetBool("IsActive"))
-                    return new User()
-                    {
-                        Id = id, Login = r.GetString("Login"),
-                        PasswordHash = r.GetString("PasswordHash"),
-                        Email = r.GetString("Email"),
-                    };
-                else
-                    throw new UserNotFoundException
-                        ($"The user with id={id} was deleted.");
+                var r = Client.Get(Policy, key, "Id", "Login", "PasswordHash", "Email");
+                return new User()
+                {
+                    Id = id, Login = r.GetString("Login"),
+                    PasswordHash = r.GetString("PasswordHash"),
+                    Email = r.GetString("Email"),
+                };
             }
-            catch (Exception e)
-            {
+            else
                 throw new UserNotFoundException
-                    ($"The user with id={id} doesn't exist.", e);
-            }
+                    ($"The user with id={id} does not exist.");
         }
 
         public Collection GetCollectionInfo(int id)
         {
-            try
+            Key key = MakeKey(Entities.Collection, id);
+            if (Exists(key))
             {
-                var r = Client.Get(Policy, MakeKey(Entities.Collection, id),
-                    "Id", "Name", "Description", "Owner", "IsActive");
-                if (r.GetBool("IsActive"))
+                var r = Client.Get(Policy, key, "Id", "Name", "Description");
+                return new Collection()
                 {
-                    return new Collection()
-                    {
-                        Id = id, Name = r.GetString("Name"),
-                        Description = r.GetString("Description"),
-                        Owner = r.GetInt("Owner"),
-                    };
-                }
-                else
-                    throw new CollectionNotFoundException
-                        ($"The collection with id={id} was deleted.");
+                    Id = id, Name = r.GetString("Name"),
+                    Description = r.GetString("Description"),
+                };
             }
-            catch (Exception e)
-            {
+            else
                 throw new CollectionNotFoundException
-                    ($"The collection with id={id} doesn't exist.", e);
-            }
+                    ($"The collection with id={id} does not exist.");
         }
 
         public Card GetCard(int id)
         {
-            try
+            Key key = MakeKey(Entities.Card, id);
+            if (Exists(key))
             {
-                var r = Client.Get(Policy, MakeKey(Entities.Card, id),
-                    "Id", "FrontSide", "BackSide", "IsActive");
-                if (r.GetBool("IsActive"))
-                    return new Card()
-                    {
-                        Id = id, FrontSide = r.GetString("FrontSide"),
-                        BackSide = r.GetString("BackSide")
-                    };
-                else
-                    throw new CardNotFoundException
-                        ($"The card with id={id} was deleted.");
+                var r = Client.Get(Policy, key, "Id", "FrontSide", "BackSide");
+                return new Card()
+                {
+                    Id = id, FrontSide = r.GetString("FrontSide"),
+                    BackSide = r.GetString("BackSide"),
+                };
             }
-            catch (Exception e)
-            {
+            else
                 throw new CardNotFoundException
-                    ($"The card with id={id} doesn't exist.", e);
-            }
+                    ($"The card with id={id} does not exist.");
         }
 
         public User GetUserInfoByLogin(string login)
@@ -107,6 +88,7 @@ namespace Quizleç.Database
                             Email = r.GetString("Email"),
                         });
                 }
+
                 rs.Dispose();
 
                 if (res.Count == 1)
@@ -151,9 +133,9 @@ namespace Quizleç.Database
                             Id = r.GetInt("Id"),
                             Name = name,
                             Description = r.GetString("Description"),
-                            Owner = r.GetInt("Owner"),
                         });
                 }
+
                 rs.Dispose();
 
                 if (res.Count <= 0)
@@ -177,109 +159,74 @@ namespace Quizleç.Database
 
         public List<Card> GetCardsByCollectionId(int id)
         {
-            try
+            Key key = MakeKey(Entities.Collection, id);
+            if (Exists(key))
             {
-                Key key = MakeKey(Entities.Collection, id);
-                Record r = Client.Get(Policy, key, "Cards", "IsActive");
-                if (r.GetBool("IsActive"))
+                IList cardIds = Client.Get(Policy, key, "Cards").GetList("Cards");
+                if (cardIds.Count <= 0)
+                    throw new CardNotFoundException
+                        ($"There's no cards in collection with id={id} yet.");
+                List<Card> res = new List<Card>();
+                foreach (var i in cardIds)
                 {
-                    IList cardIds = r.GetList("Cards");
-                    if (cardIds.Count <= 0)
-                        throw new CardNotFoundException
-                            ($"There's no cards in collection with id={id} yet.");
-                    List<Card> res = new List<Card>();
-                    foreach (var i in cardIds)
-                    {
-                        //  Returned IList consists of long, therefore we need to cast
-                        // TODO: fix when Ids are not int
-                        try
-                        {
-                            res.Add(GetCard((int)((long)i % int.MaxValue)));
-                        }
-                        catch (CardNotFoundException) { }
-                    }
-
-                    return res;
+                    //  Returned IList consists of long, therefore we need to cast
+                    // TODO: fix when Ids are not int
+                    res.Add(GetCard((int) ((long) i % int.MaxValue)));
                 }
-                else
-                    throw new CollectionNotFoundException
-                        ($"The collection with id={id} was deleted.");
+
+                return res;
             }
-            catch (Exception e)
-            {
-                throw new DatabaseQueryException
-                    ($"Can't get cards of the collection with id={id}.", e);
-            }
+            else
+                throw new CollectionNotFoundException
+                    ($"The collection with id={id} does not exist.");
         }
 
         public List<Collection> GetCollectionsByUserId(int id)
         {
-            try
+            Key key = MakeKey(Entities.User, id);
+            if (Exists(key))
             {
-                Key key = MakeKey(Entities.User, id);
-                Record r = Client.Get(Policy, key, "Collections", "IsActive");
-                IList collectionIds = r.GetList("Collections");
-                if (r.GetBool("IsActive"))
+                IList collectionIds = Client.Get(Policy, key, "Collections").GetList("Collections");
+                if (collectionIds.Count <= 0)
+                    throw new CardNotFoundException
+                        ($"The user with id={id} has no collections yet.");
+                var res = new List<Collection>();
+                foreach (var i in collectionIds)
                 {
-                    if (collectionIds.Count <= 0)
-                        throw new CardNotFoundException
-                            ($"The user with id={id} has no collections yet.");
-                    var res = new List<Collection>();
-                    foreach (var i in collectionIds)
-                    {
-                        //  Returned IList consists of long, therefore we need to cast
-                        // TODO: fix when Ids are not int
-                        res.Add(GetCollectionInfo((int)((long)i % int.MaxValue)));
-                    }
-
-                    return res;
+                    //  Returned IList consists of long, therefore we need to cast
+                    // TODO: fix when Ids are not int
+                    res.Add(GetCollectionInfo((int) ((long) i % int.MaxValue)));
                 }
-                else
-                    throw new CollectionNotFoundException
-                        ($"The user with id={id} was deleted.");
+
+                return res;
             }
-            catch (Exception e)
-            {
-                throw new DatabaseQueryException
-                    ($"Can't get collections of the user with id={id}.", e);
-            }
+            else
+                throw new CollectionNotFoundException
+                    ($"The user with id={id} does not exist.");
         }
 
         public List<Card> GetCardsByUserId(int id)
         {
-            try
+            Key key = MakeKey(Entities.User, id);
+            if (Exists(key))
             {
-                Key key = MakeKey(Entities.User, id);
-                Record r = Client.Get(Policy, key, "Collections", "IsActive");
-                IList collectionIds = r.GetList("Collections");
-                if (r.GetBool("IsActive"))
+                IList collectionIds = Client.Get(Policy, key, "Collections").GetList("Collections");
+                if (collectionIds.Count <= 0)
+                    throw new CardNotFoundException
+                        ($"The user with id={id} has no collections yet.");
+                var res = new List<Card>();
+                foreach (var i in collectionIds)
                 {
-                    if (collectionIds.Count <= 0)
-                        throw new CardNotFoundException
-                            ($"The user with id={id} has no collections yet.");
-                    var res = new List<Card>();
-                    foreach (var i in collectionIds)
-                    {
-                        try
-                        {
-                            //  Returned IList consists of long, therefore we need to cast
-                            // TODO: fix when Ids are not int
-                            res.AddRange(GetCardsByCollectionId((int)((long)i % int.MaxValue)));
-                        }
-                        catch (CardNotFoundException) {}
-                    }
-
-                    return res;
+                    //  Returned IList consists of long, therefore we need to cast
+                    // TODO: fix when Ids are not int
+                    res.AddRange(GetCardsByCollectionId((int) ((long) i % int.MaxValue)));
                 }
-                else
-                    throw new UserNotFoundException
-                        ($"The user with id={id} was deleted.");
+
+                return res;
             }
-            catch (Exception e)
-            {
-                throw new DatabaseQueryException
-                    ($"Can't get cards of the user with id={id}.", e);
-            }
+            else
+                throw new UserNotFoundException
+                    ($"The user with id={id} was deleted.");
         }
     }
 }

@@ -12,6 +12,41 @@ namespace Quizleç.Database
     {
         public AerospikeWriteClient() : base(true) {}
 
+        private Bin[] MakeUserBins(User user)
+        {
+            return new[]
+            {
+                new Bin("Id", user.Id),
+                new Bin("Login", user.Login),
+                new Bin("PasswordHash", user.PasswordHash),
+                new Bin("Email", user.Email),
+                new Bin("Collections", user.Collections),
+                new Bin("IsActive", true),
+            };
+        }
+
+        private Bin[] MakeCollectionBins(Collection collection)
+        {
+            return new[]
+            {
+                new Bin("Id", collection.Id),
+                new Bin("Name", collection.Name),
+                new Bin("Description", collection.Description),
+                new Bin("Cards", collection.Cards),
+                new Bin("IsActive", true),
+            };
+        }
+
+        private Bin[] MakeCardBins(Card card)
+        {
+            return new[]
+            {
+                new Bin("Id", card.Id),
+                new Bin("FrontSide", card.FrontSide),
+                new Bin("BackSide", card.BackSide),
+                new Bin("IsActive", true),
+            };
+        }
         public void Put(Object entity)
         {
             try
@@ -36,7 +71,12 @@ namespace Quizleç.Database
                         throw new ArgumentException
                             ($"Not implemented for Entity={entity.GetType().Name}.");
                 }
-                Client.Put((WritePolicy) Policy, key, bins);
+
+                if (!Exists(key))
+                    Client.Put((WritePolicy) Policy, key, bins);
+                else
+                    throw new AlreadyExistsException
+                        ($"Entity={entity.GetType().Name} with key={key} already exists.");
             }
             catch (Exception e)
             {
@@ -45,66 +85,29 @@ namespace Quizleç.Database
             }
         }
 
-        private Bin[] MakeUserBins(User user)
-        {
-            return new[]
-            {
-                new Bin("Id", user.Id),
-                new Bin("Login", user.Login),
-                new Bin("PasswordHash", user.PasswordHash),
-                new Bin("Email", user.Email),
-                new Bin("Collections", user.Collections),
-                new Bin("IsActive", true),
-            };
-        }
-
-        private Bin[] MakeCollectionBins(Collection collection)
-        {
-            return new[]
-            {
-                new Bin("Id", collection.Id),
-                new Bin("Name", collection.Name),
-                new Bin("Description", collection.Description),
-                new Bin("Owner", collection.Owner),
-                new Bin("Cards", collection.Cards),
-                new Bin("IsActive", true),
-            };
-        }
-
-        private Bin[] MakeCardBins(Card card)
-        {
-            return new[]
-            {
-                new Bin("Id", card.Id),
-                new Bin("FrontSide", card.FrontSide),
-                new Bin("BackSide", card.BackSide),
-                new Bin("IsActive", true),
-            };
-        }
-
         public int Delete(Entities entity, int id)
         {
-            try
-            {
-                Record r = Client.Get(Policy, MakeKey(entity, id));
-                if (r.GetBool("IsActive"))
-                    r = Client.Operate((WritePolicy) Policy, MakeKey(entity, id),
-                        Operation.Put(new Bin("IsActive", false)));
-                return r.GetInt("Id");
-            }
-            catch (NullReferenceException e)
+            Key key = MakeKey(entity, id);
+            if (Exists(key))
+                try
+                {
+                    Record r = Client.Operate((WritePolicy) Policy, key,
+                            Operation.Put(new Bin("IsActive", false)));
+                    return r.GetInt("Id");
+                }
+                catch (Exception e)
+                {
+                    throw new DatabaseWriteException
+                        ($"Error while deleting {entity} with id={id}", e);
+                }
+            else
             {
                 throw new DatabaseWriteException
-                    ($"The {entity} with id={id} never existed.", e);
-            }
-            catch (Exception e)
-            {
-                throw new DatabaseWriteException
-                    ($"Error while deleting {entity} with id={id}", e);
+                    ($"The {entity} with id={id} never existed.");
             }
         }
 
-        public int Update(Object entity, int id)
+        public void Update(Object entity, int id)
         {
             try
             {
@@ -128,26 +131,17 @@ namespace Quizleç.Database
                         throw new ArgumentException
                             ($"Not implemented for Entity={entity.GetType().Name}.");
                 }
-                Record r = Client.Get(Policy, key, "IsActive");
-                if (r.GetBool("IsActive"))
+                if (Exists(key))
                 {
                     foreach (var bin in bins)
                     {
                         if (bin.value != Value.NULL && bin.name != "Id" && bin.name != "IsActive")
-                            r = Client.Operate((WritePolicy) Policy, key,
-                                Operation.Put(bin));
+                            Client.Operate((WritePolicy) Policy, key, Operation.Put(bin));
                     }
-
-                    return r.GetInt("Id");
                 }
                 else
                     throw new CardNotFoundException
                         ($"Can't update deleted {entity.GetType().Name} with id={id}.");
-            }
-            catch (NullReferenceException e)
-            {
-                throw new DatabaseWriteException
-                    ($"The {entity.GetType().Name} with id={id} never existed.", e);
             }
             catch (Exception e)
             {
@@ -162,27 +156,47 @@ namespace Quizleç.Database
             {
                 Key cardKey = MakeKey(Entities.Card, cardId);
                 Key collectionKey = MakeKey(Entities.Collection, collectionId);
-                Record cardRecord = Client.Get(Policy, cardKey, "IsActive");
-                Record collectionRecord = Client.Get(Policy, collectionKey,
-                    "IsActive", "Cards");
-                if (collectionRecord.GetBool("IsActive") &&
-                    cardRecord.GetBool("IsActive") &&
+                Record collectionRecord = Client.Get(Policy, collectionKey, "Cards");
+                if (Exists(collectionKey) && Exists(cardKey) &&
                     !collectionRecord.GetList("Cards").Contains((long)cardId))
                 {
                     Client.Operate((WritePolicy) Policy, collectionKey,
                         ListOperation.Append("Cards", Value.Get(cardId)));
                 }
-            }
-            catch (NullReferenceException e)
-            {
-                throw new DatabaseWriteException
-                    ($"The Collection with id={collectionId}" +
-                     $"or Card with id {cardId} never existed.", e);
+                else
+                    throw new DatabaseWriteException
+                        ($"The Collection with id={collectionId}" +
+                         $"or Card with id {cardId} never existed.");
             }
             catch (Exception e)
             {
                 throw new DatabaseWriteException
                     ($"Error while updating Collection with id={collectionId}", e);
+            }
+        }
+
+        public void AddCollectionToUser(int userId, int collectionId)
+        {
+            try
+            {
+                Key collectionKey = MakeKey(Entities.Collection, collectionId);
+                Key userKey = MakeKey(Entities.User, userId);
+                Record userRecord = Client.Get(Policy, userKey, "Collections");
+                if (Exists(userKey) && Exists(collectionKey) &&
+                    !userRecord.GetList("Collections").Contains((long)collectionId))
+                {
+                    Client.Operate((WritePolicy) Policy, userKey,
+                        ListOperation.Append("Collections", Value.Get(collectionId)));
+                }
+                else
+                    throw new DatabaseWriteException
+                        ($"The User with id={userId}" +
+                         $"or Collection with id {collectionId} never existed.");
+            }
+            catch (Exception e)
+            {
+                throw new DatabaseWriteException
+                    ($"Error while updating User with id={userId}", e);
             }
         }
     }
