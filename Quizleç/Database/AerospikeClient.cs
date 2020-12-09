@@ -63,5 +63,10 @@ namespace Quizleç.Database
             return Client.Exists(Policy, key) &&
                    Client.Get(Policy, key, "IsActive").GetBool("IsActive");
         }
+
+        public bool Exists(Entities entity, int id)
+        {
+            return Exists(MakeKey(entity, id));
+        }
     }
 }

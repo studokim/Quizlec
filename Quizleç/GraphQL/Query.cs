@@ -5,7 +5,7 @@ using System.Net;
 using HotChocolate;
 using Quizleç.Database;
 using Quizleç.Exceptions;
-using Quizleç.Models;
+using Quizleç.GraphQL.Models;
 
 namespace Quizleç.GraphQL
 {
@@ -13,12 +13,20 @@ namespace Quizleç.GraphQL
     {
         public string Hello() => "World!";
 
-        public User GetUserInfoByLogin(string login)
+        public UserWithCollections GetUser(string login)
         {
             try
             {
                 var client = new AerospikeQueryClient();
-                return client.GetUserInfoByLogin(login);
+                var user = client.GetUserInfoByLogin(login);
+                var collections = client.GetCollectionsByUserId(user.Id);
+                client.Close();
+                var res = new UserWithCollections()
+                {
+                    Id = user.Id, Login = user.Login, Email = user.Email,
+                    Collections = collections, CollectionsCount = collections.Count
+                };
+                return res;
             }
             catch (NotFoundException e)
             {
@@ -30,24 +38,7 @@ namespace Quizleç.GraphQL
             }
         }
 
-        public Collection GetCollectionInfoByName(string name)
-        {
-            try
-            {
-                var client = new AerospikeQueryClient();
-                return client.GetCollectionInfoByName(name);
-            }
-            catch (NotFoundException e)
-            {
-                throw new GraphQlException("Collection not found. " + e.Message, HttpStatusCode.NotFound);
-            }
-            catch (Exception)
-            {
-                throw new GraphQlException("Could not get collection.", HttpStatusCode.InternalServerError);
-            }
-        }
-
-        public List<Card> GetCardsByCollectionId(int id)
+        public List<Quizleç.Models.Card> GetCardsByCollectionId(int id)
         {
             try
             {
@@ -64,24 +55,7 @@ namespace Quizleç.GraphQL
             }
         }
 
-        public List<Collection> GetCollectionsByUserId(int id)
-        {
-            try
-            {
-                var client = new AerospikeQueryClient();
-                return client.GetCollectionsByUserId(id);
-            }
-            catch (NotFoundException e)
-            {
-                throw new GraphQlException("Collections or user not found. " + e.Message, HttpStatusCode.NotFound);
-            }
-            catch (Exception)
-            {
-                throw new GraphQlException("Could not get collections.", HttpStatusCode.InternalServerError);
-            }
-        }
-
-        public List<Card> GetCardsByUserId(int id)
+        public List<Quizleç.Models.Card> GetCardsByUserId(int id)
         {
             try
             {
@@ -98,12 +72,37 @@ namespace Quizleç.GraphQL
             }
         }
 
-        public User GetUser(int id)
+        public List<Quizleç.Models.Collection> GetCollectionsByUserId(int id)
         {
             try
             {
                 var client = new AerospikeQueryClient();
-                return client.GetUserInfo(id);
+                return client.GetCollectionsByUserId(id);
+            }
+            catch (NotFoundException e)
+            {
+                throw new GraphQlException("Collections or user not found. " + e.Message, HttpStatusCode.NotFound);
+            }
+            catch (Exception)
+            {
+                throw new GraphQlException("Could not get collections.", HttpStatusCode.InternalServerError);
+            }
+        }
+
+        public UserWithCollections GetUser(int id)
+        {
+            try
+            {
+                var client = new AerospikeQueryClient();
+                var user = client.GetUserInfo(id);
+                var collections = client.GetCollectionsByUserId(id);
+                client.Close();
+                var res = new UserWithCollections()
+                {
+                    Id = user.Id, Login = user.Login, Email = user.Email,
+                    Collections = collections, CollectionsCount = collections.Count
+                };
+                return res;
             }
             catch (NotFoundException e)
             {
@@ -115,7 +114,7 @@ namespace Quizleç.GraphQL
             }
         }
 
-        public Card GetCard(int id)
+        public Quizleç.Models.Card GetCard(int id)
         {
             try
             {
@@ -132,12 +131,20 @@ namespace Quizleç.GraphQL
             }
         }
 
-        public Collection GetCollection(int id)
+        public CollectionWithCards GetCollection(int id)
         {
             try
             {
                 var client = new AerospikeQueryClient();
-                return client.GetCollectionInfo(id);
+                var collection = client.GetCollectionInfo(id);
+                var cards = client.GetCardsByCollectionId(id);
+                client.Close();
+                var res = new CollectionWithCards()
+                {
+                    Id = collection.Id, Name = collection.Name, Description = collection.Description,
+                    Cards = cards, CardsCount = cards.Count
+                };
+                return res;
             }
             catch (NotFoundException e)
             {

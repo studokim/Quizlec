@@ -37,11 +37,11 @@ namespace Quizleç.Database
             Key key = MakeKey(Entities.Collection, id);
             if (Exists(key))
             {
-                var r = Client.Get(Policy, key, "Id", "Name", "Description");
+                var r = Client.Get(Policy, key, "Id", "Name", "Description", "Cards");
                 return new Collection()
                 {
                     Id = id, Name = r.GetString("Name"),
-                    Description = r.GetString("Description"),
+                    Description = r.GetString("Description")
                 };
             }
             else
@@ -113,7 +113,8 @@ namespace Quizleç.Database
             }
         }
 
-        public Collection GetCollectionInfoByName(string name)
+        // TODO: we can't search only by Name, because John can have Default collection and James too
+        /*public Collection GetCollectionInfoByName(string name)
         {
             try
             {
@@ -155,7 +156,7 @@ namespace Quizleç.Database
             {
                 throw new DatabaseQueryException("Can't get collection by name", e);
             }
-        }
+        }*/
 
         public List<Card> GetCardsByCollectionId(int id)
         {
@@ -169,9 +170,16 @@ namespace Quizleç.Database
                 List<Card> res = new List<Card>();
                 foreach (var i in cardIds)
                 {
-                    //  Returned IList consists of long, therefore we need to cast
-                    // TODO: fix when Ids are not int
-                    res.Add(GetCard((int) ((long) i % int.MaxValue)));
+                    try
+                    {
+                        //  Returned IList consists of long, therefore we need to cast
+                        // TODO: fix when Ids are not int
+                        res.Add(GetCard((int) ((long) i % int.MaxValue)));
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
                 }
 
                 return res;
@@ -193,9 +201,16 @@ namespace Quizleç.Database
                 var res = new List<Collection>();
                 foreach (var i in collectionIds)
                 {
-                    //  Returned IList consists of long, therefore we need to cast
-                    // TODO: fix when Ids are not int
-                    res.Add(GetCollectionInfo((int) ((long) i % int.MaxValue)));
+                    try
+                    {
+                        //  Returned IList consists of long, therefore we need to cast
+                        // TODO: fix when Ids are not int
+                        res.Add(GetCollectionInfo((int) ((long) i % int.MaxValue)));
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
                 }
 
                 return res;
@@ -217,9 +232,16 @@ namespace Quizleç.Database
                 var res = new List<Card>();
                 foreach (var i in collectionIds)
                 {
-                    //  Returned IList consists of long, therefore we need to cast
-                    // TODO: fix when Ids are not int
-                    res.AddRange(GetCardsByCollectionId((int) ((long) i % int.MaxValue)));
+                    try
+                    {
+                        //  Returned IList consists of long, therefore we need to cast
+                        // TODO: fix when Ids are not int
+                        res.AddRange(GetCardsByCollectionId((int) ((long) i % int.MaxValue)));
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
                 }
 
                 return res;
