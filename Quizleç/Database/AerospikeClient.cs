@@ -4,7 +4,7 @@ using Quizleç.Models;
 
 namespace Quizleç.Database
 {
-    public abstract class AerospikeClient : IClient
+    public abstract class AerospikeClient : IDBClient
     {
         protected readonly Config.Aerospike Options;
         protected readonly Policy Policy;

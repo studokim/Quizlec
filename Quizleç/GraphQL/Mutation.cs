@@ -23,7 +23,7 @@ namespace Quizleç.GraphQL
             }
             catch (DatabaseWriteException)
             {
-                return HttpStatusCode.NotFound;
+                return HttpStatusCode.Conflict;
             }
             catch (Exception)
             {

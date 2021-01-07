@@ -85,7 +85,7 @@ namespace Quizleç.Database
             }
         }
 
-        public int Delete(Entities entity, int id)
+        public void Delete(Entities entity, int id)
         {
             Key key = MakeKey(entity, id);
             if (Exists(key))
@@ -93,7 +93,6 @@ namespace Quizleç.Database
                 {
                     Record r = Client.Operate((WritePolicy) Policy, key,
                             Operation.Put(new Bin("IsActive", false)));
-                    return r.GetInt("Id");
                 }
                 catch (Exception e)
                 {

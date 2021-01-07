@@ -84,8 +84,8 @@ namespace Quizleç
         private static void HardCodeDelete()
         {
             AerospikeWriteClient c = new AerospikeWriteClient();
-            Console.WriteLine(c.Delete(Entities.Card, 4));
-            Console.WriteLine(c.Delete(Entities.Collection, 4444));
+            c.Delete(Entities.Card, 4);
+            c.Delete(Entities.Collection, 4444);
         }
 
         private static void HardCodeUpdate()

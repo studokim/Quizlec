@@ -3,7 +3,7 @@ using Aerospike.Client;
 
 namespace Quizleç.Database
 {
-    internal interface IClient
+    internal interface IDBClient
     {
         public void Open();
         public void Close();
