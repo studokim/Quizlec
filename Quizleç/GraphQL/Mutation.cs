@@ -12,26 +12,26 @@ namespace Quizleç.GraphQL
     // TODO: rewrite with exceptions, like Query
     public class Mutation
     {
-        public HttpStatusCode PutUser(User user)
+        public User PutUser(User user)
         {
             try
             {
                 var c = new AerospikeWriteClient();
                 c.Put(user);
                 c.Close();
-                return HttpStatusCode.OK;
+                return user;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.Conflict;
+                throw new GraphQlException("User already exists. " + e.Message, HttpStatusCode.Conflict);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while saving user.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode PutCard(Card card, int collectionId)
+        public Card PutCard(Card card, int collectionId)
         {
             try
             {
@@ -45,22 +45,22 @@ namespace Quizleç.GraphQL
                 else
                 {
                     client.Close();
-                    return HttpStatusCode.NotFound;
+                    throw new GraphQlException("Collection was not found.", HttpStatusCode.NotFound);
                 }
 
-                return HttpStatusCode.OK;
+                return card;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while saving card.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode PutCollection(Collection collection, int ownerId)
+        public Collection PutCollection(Collection collection, int ownerId)
         {
             try
             {
@@ -70,78 +70,87 @@ namespace Quizleç.GraphQL
                 client.Put(collection);
                 client.AddCollectionToUser(ownerId, collection.Id);
                 client.Close();
-                return HttpStatusCode.OK;
+                return collection;
             }
             catch (DatabaseException e)
             {
                 if (e.InnerException is AlreadyExistsException)
-                    return HttpStatusCode.Conflict;
-                return HttpStatusCode.NotFound;
+                    throw new GraphQlException("Collection already exists. " + e.Message, HttpStatusCode.Conflict);
+                throw new GraphQlException("User with this id not found. " + e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while saving collection.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode DeleteUser(int id)
+        public User DeleteUser(int id)
         {
             try
             {
+                var rc = new AerospikeQueryClient();
+                var user = rc.GetUserInfo(id);
+                rc.Close();
                 var c = new AerospikeWriteClient();
                 c.Delete(Entities.User, id);
                 c.Close();
-                return HttpStatusCode.OK;
+                return user;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while deleting user.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode DeleteCard(int id)
+        public Card DeleteCard(int id)
         {
             try
             {
+                var rc = new AerospikeQueryClient();
+                var card = rc.GetCard(id);
+                rc.Close();
                 var c = new AerospikeWriteClient();
                 c.Delete(Entities.Card, id);
                 c.Close();
-                return HttpStatusCode.OK;
+                return card;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while deleting card.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode DeleteCollection(int id)
+        public Collection DeleteCollection(int id)
         {
             try
             {
+                var rc = new AerospikeQueryClient();
+                var collection = rc.GetCollectionInfo(id);
+                rc.Close();
                 var c = new AerospikeWriteClient();
                 c.Delete(Entities.Collection, id);
                 c.Close();
-                return HttpStatusCode.OK;
+                return collection;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while deleting collection.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode UpdateUser(UserInfo user, int id)
+        public UserInfo UpdateUser(UserInfo user, int id)
         {
             try
             {
@@ -153,19 +162,19 @@ namespace Quizleç.GraphQL
                 };
                 c.Update(u, id);
                 c.Close();
-                return HttpStatusCode.OK;
+                return user;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while updating user.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode UpdateCard(CardInfo card, int id)
+        public CardInfo UpdateCard(CardInfo card, int id)
         {
             try
             {
@@ -177,19 +186,19 @@ namespace Quizleç.GraphQL
                 };
                 c.Update(u, id);
                 c.Close();
-                return HttpStatusCode.OK;
+                return card;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while updating card.", HttpStatusCode.InternalServerError);
             }
         }
 
-        public HttpStatusCode UpdateCollection(CollectionInfo collection, int id)
+        public CollectionInfo UpdateCollection(CollectionInfo collection, int id)
         {
             try
             {
@@ -201,15 +210,15 @@ namespace Quizleç.GraphQL
                 };
                 c.Update(u, id);
                 c.Close();
-                return HttpStatusCode.OK;
+                return collection;
             }
-            catch (DatabaseWriteException)
+            catch (DatabaseWriteException e)
             {
-                return HttpStatusCode.NotFound;
+                throw new GraphQlException(e.Message, HttpStatusCode.NotFound);
             }
             catch (Exception)
             {
-                return HttpStatusCode.InternalServerError;
+                throw new GraphQlException("Error while updating collection.", HttpStatusCode.InternalServerError);
             }
         }
     }
