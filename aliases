@@ -1,0 +1,8 @@
+alias aerolog="tail /var/log/aerospike/aerospike.log -n 20"
+alias aerostart="sudo service aerospike start"
+alias aerostatus="sudo service aerospike status"
+alias aerostop="sudo service aerospike stop"
+alias aql="aql -h 127.0.0.15 -p 3000"
+alias aerocleanUsers='asinfo -h 127.0.0.15 -v "truncate:namespace=quizlec;set=Users;"'
+alias aerocleanCollections='asinfo -h 127.0.0.15 -v "truncate:namespace=quizlec;set=Collections;"'
+alias aerocleanCards='asinfo -h 127.0.0.15 -v "truncate:namespace=quizlec;set=Cards;"'
